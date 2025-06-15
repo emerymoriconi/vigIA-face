@@ -2,6 +2,7 @@ import tkinter as tk
 from gui import GUI
 from camera import Camera
 from face_recognition import FaceRecognizer
+from config import RESOLUTIONS
 
 class MainController:
     def __init__(self, master):
@@ -11,7 +12,6 @@ class MainController:
             self.camera = Camera(0)
             self.face_recognizer = FaceRecognizer()
             self.ui = GUI(master)
-
            
             self.ui.set_callbacks(self.apply_settings, self.quit_app)
 
