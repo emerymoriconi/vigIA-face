@@ -1,7 +1,15 @@
-RESOLUTIONS = {
-    "Qualidade Padrão (360p 16:9)": {"width": 640, "height": 360, "fps": 30},
-    "Qualidade Média (480p 4:3)": {"width": 640, "height": 480, "fps": 30},
-    "Qualidade Baixa (240p 4:3)": {"width": 320, "height": 240, "fps": 30},
-    "Muito Baixa (120p 4:3)": {"width": 160, "height": 120, "fps": 30},
-    "Visão Ampla (288p 11:9)": {"width": 352, "height": 288, "fps": 30}
+# (Altura x Largura)
+RESOLUTION_OPTIONS = {
+    "Padrão (640x480)": {"width": 640, "height": 480},
+    "Média (640x360)": {"width": 640, "height": 360},
+    "Baixa (352x288)": {"width": 352, "height": 288},
+    "Muito Baixa (320x240)": {"width": 320, "height": 240},
+}
+
+# FPS (Frames Por Segundo - para descarte)
+FPS_OPTIONS = {
+    "Máxima (30 FPS)": 30,
+    "Alta (15 FPS)": 15,
+    "Média (10 FPS)": 10,
+    "Baixa (5 FPS)": 5,
 }
