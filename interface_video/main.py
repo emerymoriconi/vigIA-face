@@ -29,7 +29,6 @@ class MainController:
             actual_camera_props = self.camera.set_properties(
                 width=initial_res_settings['width'], 
                 height=initial_res_settings['height'], 
-                fps=self.real_camera_fps
             )
             
             # O FPS desejado inicial já está setado acima, baseado na primeira opção de FPS_OPTIONS
@@ -68,7 +67,6 @@ class MainController:
             actual_camera_props = self.camera.set_properties(
                 width=settings['width'], 
                 height=settings['height'], 
-                fps=self.real_camera_fps 
             )
             
             # atualiza o FPS desejado para a lógica de descarte de frames
