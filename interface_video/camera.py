@@ -1,5 +1,6 @@
-import cv2
-from picamera2 import Picamera2, Preview # Importa Picamera2 e Preview
+
+from picamera2 import Picamera2
+
 
 class Camera:
    

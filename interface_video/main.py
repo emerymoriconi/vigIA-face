@@ -18,7 +18,7 @@ class MainController:
         self.frame_counter = 0
         
         try:
-            self.camera = Camera(0)
+            self.camera = Camera()
             self.face_recognizer = FaceRecognizer()
             self.ui = GUI(master)
            
