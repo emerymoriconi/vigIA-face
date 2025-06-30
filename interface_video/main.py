@@ -3,7 +3,7 @@ from gui import GUI
 from camera import Camera
 from face_recognition import FaceRecognizer
 from config import RESOLUTION_OPTIONS, FPS_OPTIONS
-
+   
 class MainController:
     def __init__(self, master):
         self.master = master
@@ -51,7 +51,7 @@ class MainController:
             if self.desired_fps <= 0:
                 frames_per_desired_frame = 1.0 # exibe todos os frames se o desired_fps for inválido
             else:
-                frames_per_desired_frame = self.real_camera_fps / self.desired_fps 
+                frames_per_desired_frame = int(self.real_camera_fps / self.desired_fps)
             
             # evita divisão por zero
             if self.desired_fps == self.real_camera_fps or (self.frame_counter % frames_per_desired_frame) < 1: 

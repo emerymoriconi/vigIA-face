@@ -49,7 +49,9 @@ class Camera:
         # 'copy=False' pode ser usado para evitar a cópia, mas 'capture_array' já retorna uma cópia para segurança.
         frame = self.vid.capture_array("main")
         if frame is not None:
+            print("Frame capturado")
             return (True, frame)
+        print("Falha ao capturar frame")
         return (False, None)
 
     def release(self):
