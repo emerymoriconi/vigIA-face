@@ -1,6 +1,5 @@
-
+import cv2
 from picamera2 import Picamera2
-
 
 class Camera:
    
@@ -50,7 +49,8 @@ class Camera:
         frame = self.vid.capture_array("main")
         if frame is not None:
             print("Frame capturado")
-            return (True, frame)
+            frame_bgr = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
+            return (True, frame_bgr)
         print("Falha ao capturar frame")
         return (False, None)
 
