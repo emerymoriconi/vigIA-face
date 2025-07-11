@@ -5,7 +5,7 @@ class Camera:
    
     def __init__(self):
         # Inicializa a câmera usando picamera2
-        self.vid = Picamera2(camera_num=1)
+        self.vid = Picamera2(camera_num=0)
     
         # Configurações padrão para a pré-visualização e captura.
         # Define o stream principal com uma resolução inicial e formato BGR888 para compatibilidade com OpenCV.
