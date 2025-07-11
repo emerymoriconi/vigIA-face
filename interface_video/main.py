@@ -3,42 +3,36 @@ from gui import GUI
 from camera import Camera
 from face_recognition import FaceRecognizer
 from config import RESOLUTION_OPTIONS, FPS_OPTIONS
-   
+
 class MainController:
     def __init__(self, master):
         self.master = master
 
-        # FPS real da câmera, que é fixo em 30 FPS (modificar na Raspberry depois)
-        self.real_camera_fps = 30 
+        self.camera_num = 0  # valor padrão
+        self.camera = Camera(camera_num=self.camera_num)
 
-        # FPS desejado pelo usuário (para controle de descarte de frames).
-        # Inicia com o primeiro FPS das opções para o menu
-        self.desired_fps = FPS_OPTIONS[list(FPS_OPTIONS.keys())[0]] 
-
+        self.real_camera_fps = 30
+        self.desired_fps = FPS_OPTIONS[list(FPS_OPTIONS.keys())[0]]
         self.frame_counter = 0
-        
+
         try:
-            self.camera = Camera()
             self.face_recognizer = FaceRecognizer()
             self.ui = GUI(master)
-           
+
             self.ui.set_callbacks(self.apply_settings, self.quit_app)
 
-            # Define as configurações iniciais da câmera com a primeira opção de resolução
-            initial_res_settings = RESOLUTION_OPTIONS[list(RESOLUTION_OPTIONS.keys())[0]] 
+            initial_res_settings = RESOLUTION_OPTIONS[list(RESOLUTION_OPTIONS.keys())[0]]
             actual_camera_props = self.camera.set_properties(
-                width=initial_res_settings['width'], 
-                height=initial_res_settings['height'], 
+                width=initial_res_settings['width'],
+                height=initial_res_settings['height'],
             )
-            
-            # O FPS desejado inicial já está setado acima, baseado na primeira opção de FPS_OPTIONS
 
             print(f"Configurações iniciais reais da câmera: {actual_camera_props}")
             print(f"FPS inicial desejado (simulado) para exibição: {self.desired_fps}")
 
-            self.delay = 15  
+            self.delay = 15
             self.update_video()
-            
+
         except (ValueError, IOError) as e:
             self.show_error(str(e))
 
@@ -46,31 +40,32 @@ class MainController:
         ret, frame = self.camera.get_frame()
 
         if ret:
-            self.frame_counter += 1 
+            self.frame_counter += 1
 
             if self.desired_fps <= 0:
-                frames_per_desired_frame = 1.0 # exibe todos os frames se o desired_fps for inválido
+                frames_per_desired_frame = 1.0
             else:
                 frames_per_desired_frame = int(self.real_camera_fps / self.desired_fps)
-            
-            # evita divisão por zero
-            if self.desired_fps == self.real_camera_fps or (self.frame_counter % frames_per_desired_frame) < 1: 
+
+            if self.desired_fps == self.real_camera_fps or (self.frame_counter % frames_per_desired_frame) < 1:
                 processed_frame, faces_data = self.face_recognizer.process_frame(frame)
                 self.ui.update_video_frame(processed_frame)
 
         self.master.after(self.delay, self.update_video)
 
     def apply_settings(self):
-        settings = self.ui.get_settings() 
+        settings = self.ui.get_settings()
         if settings:
-           
+            self.camera.release()
+            self.camera_num = settings['camera_num']
+            self.camera = Camera(camera_num=self.camera_num)
+
             actual_camera_props = self.camera.set_properties(
-                width=settings['width'], 
-                height=settings['height'], 
+                width=settings['width'],
+                height=settings['height'],
             )
-            
-            # atualiza o FPS desejado para a lógica de descarte de frames
-            self.desired_fps = settings['desired_fps'] 
+
+            self.desired_fps = settings['desired_fps']
 
             print(f"Configurações aplicadas: Resolução {settings['width']}x{settings['height']}, FPS simulado {self.desired_fps}")
             print(f"Configurações reais da câmera após aplicação: {actual_camera_props}")
