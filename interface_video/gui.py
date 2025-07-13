@@ -8,11 +8,9 @@ class GUI:
         self.master = master
         self.master.title(title)
 
-        self.camera_options = {
-            "Câmera 0": 0,
-            "Câmera 1": 1,
-            "Câmera 2": 2,
-        }
+        # o menu self.camera_options será preenchido dinamicamente agora
+        self.camera_options = {} # { "Nome da Câmera (idx)": indice_da_camera }
+        self.camera_display_names = [] # Para manter a ordem de exibição no OptionMenu
 
         self.control_frame = tk.Frame(master)
         self.control_frame.pack(side=tk.TOP, fill=tk.X, padx=10, pady=5)
@@ -46,13 +44,14 @@ class GUI:
         # --- Frame para o Menu de Câmeras ---
         camera_frame = tk.Frame(self.control_frame)
         camera_frame.pack(side=tk.TOP, pady=2, fill=tk.X)
-        tk.Label(camera_frame, text="Selecionar Câmera:").pack(side=tk.LEFT, padx=(0, 5))
-        self.selected_camera = tk.StringVar(master)
-        self.selected_camera.set(list(self.camera_options.keys())[0])
+        tk.Label(camera_frame, text="Selecionar Câmera (Exibição):").pack(side=tk.LEFT, padx=(0, 5))
+        self.selected_camera_display_name = tk.StringVar(master) # Nome para exibição
+        
+        # O valor inicial será definido por update_camera_options
         self.camera_option_menu = tk.OptionMenu(
             camera_frame,
-            self.selected_camera,
-            *list(self.camera_options.keys())
+            self.selected_camera_display_name,
+            "Nenhuma Câmera Detectada" # Placeholder inicial
         )
         self.camera_option_menu.pack(side=tk.LEFT, padx=5)
 
@@ -64,9 +63,36 @@ class GUI:
         self.canvas = tk.Canvas(master, bg="black")
         self.canvas.pack(fill=tk.BOTH, expand=True)
 
+        self.photo = None # Inicializa self.photo
+
     def set_callbacks(self, apply_callback, quit_callback):
         self.apply_button.config(command=apply_callback)
         self.master.protocol("WM_DELETE_WINDOW", quit_callback)
+
+    def update_camera_options(self, camera_info_list): # Recebe uma lista de dicionários com info
+        menu = self.camera_option_menu["menu"]
+        menu.delete(0, "end") # Limpa as opções existentes
+        
+        self.camera_options = {} # Reseta o mapeamento de nome para índice
+        self.camera_display_names = [] # Reseta a lista de nomes para exibição
+
+        if not camera_info_list:
+            self.selected_camera_display_name.set("Nenhuma Câmera Detectada")
+            self.apply_button.config(state=tk.DISABLED) # Desabilita o botão se não houver câmeras
+        else:
+            for cam_info in camera_info_list:
+                display_name = f"{cam_info['type']} ({cam_info['index']})"
+                self.camera_options[display_name] = cam_info['index']
+                self.camera_display_names.append(display_name)
+            
+            # Ordena os nomes para exibição no menu
+            self.camera_display_names.sort()
+
+            for name in self.camera_display_names:
+                menu.add_command(label=name, command=tk._setit(self.selected_camera_display_name, name))
+            
+            self.selected_camera_display_name.set(self.camera_display_names[0]) # Seleciona a primeira câmera por padrão
+            self.apply_button.config(state=tk.NORMAL) # Habilita o botão
 
     def get_settings(self):
         selected_res_name = self.selected_resolution_name.get()
@@ -75,24 +101,30 @@ class GUI:
         selected_fps_name = self.selected_fps_value.get()
         desired_fps = FPS_OPTIONS.get(selected_fps_name)
 
-        camera_name = self.selected_camera.get()
-        camera_index = self.camera_options.get(camera_name, 0)
+        # Obtém o índice da câmera selecionada para exibição
+        selected_display_name = self.selected_camera_display_name.get()
+        camera_num_to_display = self.camera_options.get(selected_display_name, None)
 
-        if resolution_settings and desired_fps is not None:
+        if resolution_settings and desired_fps is not None and camera_num_to_display is not None:
             return {
                 'width': resolution_settings['width'],
                 'height': resolution_settings['height'],
                 'desired_fps': desired_fps,
-                'camera_num': camera_index
+                'camera_num_to_display': camera_num_to_display # Indica qual câmera exibir
             }
         return None
 
-    def update_settings_display(self, settings):
-        pass  # Pode ser usado futuramente para mostrar os valores aplicados
-
     def update_video_frame(self, frame):
+        if frame is None:
+            # Desenha um retângulo preto no canvas se não houver frame válido
+            self.canvas.delete("all")
+            self.canvas.config(bg="black")
+            return
+
         h, w, _ = frame.shape
-        self.canvas.config(width=w, height=h)
+        # Redimensiona o canvas apenas se a resolução do frame mudar, para evitar piscar.
+        if self.canvas.winfo_width() != w or self.canvas.winfo_height() != h:
+            self.canvas.config(width=w, height=h)
 
         img = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         img_pil = Image.fromarray(img)
