@@ -139,6 +139,10 @@ class MainApp:
             # Aqui, você pode detectar automaticamente as câmeras disponíveis
             # ou usar um número fixo (ex: 0, 1, 2)
             num_detected_cameras = 2 # Exemplo: assume 2 câmeras para demonstração
+            
+            if desired_fps > 15:
+                print(f"fps reduzido para {15} para evitar sobrecarga.")
+                desired_fps = 15
             # Lógica para detectar câmeras pode ser adicionada aqui, como:
             # detected_indices = self._detect_available_cameras()
             # for idx in detected_indices:
