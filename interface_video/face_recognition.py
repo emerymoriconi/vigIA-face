@@ -2,7 +2,7 @@ import cv2
 
 class FaceRecognizer:
    
-    def __init__(self, cascade_path='haarcascade_frontalface_default.xml'):
+    def __init__(self, cascade_path='arquivos_algoritmos/viola-jones/haarcascade_frontalface_default.xml'):
         # Carrega o modelo pré-treinado para detecção de faces frontais
         self.face_cascade = cv2.CascadeClassifier(cascade_path)
         if self.face_cascade.empty():

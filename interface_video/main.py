@@ -2,6 +2,11 @@ import tkinter as tk
 from gui import GUI
 from camera import Camera
 from face_recognition import FaceRecognizer
+from face_recognition_hog import HOGFaceRecognizer
+from face_recognition_mtcnn import MTCNNFaceDetector
+from face_recognition_lbp import LBPFaceRecognizer
+from face_recognition_ssd import SSDFaceDetector
+from face_recognition_yolo import YOLOFaceDetector
 from config import RESOLUTION_OPTIONS, FPS_OPTIONS
 import time
 import threading
@@ -22,7 +27,12 @@ class CameraFeedController:
 
         try:
             self.camera = Camera(camera_index=self.camera_index)
-            self.face_recognizer = FaceRecognizer()
+            #self.face_recognizer = FaceRecognizer() -> OK!
+            #self.face_recognizer = HOGFaceRecognizer() -> OK!
+            self.face_recognizer = LBPFaceRecognizer() 
+            #self.face_recognizer = MTCNNFaceDetector() -> Problema de pacotes!
+            #self.face_recognizer = SSDFaceDetector() -> RASP DESLIGA!
+            #self.face_recognizer = YOLOFaceDetector() -> RASP DESLIGA!
             
             # Cria uma GUI simplificada para a janela do feed, sem os controles de seleção de câmera
             # Pois esses controles já foram definidos na MainApp.
