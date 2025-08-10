@@ -2,12 +2,12 @@ import tkinter as tk
 from gui import GUI
 from camera import Camera
 
-from face_recognition import ViolaFaceRecognizer
-from face_recognition_hog import DLIBFaceRecognizer
-from face_recognition_lbp import LBPFaceRecognizer
-from face_recognition_ssd import SSDFaceDetector
-from face_recognition_yolo import YOLOFaceDetector
-from face_recognition_blazeface import BlazeFaceDetector
+from algoritmos.face_recognition import ViolaFaceRecognizer
+from algoritmos.face_recognition_hog import DLIBFaceRecognizer
+from algoritmos.face_recognition_lbp import LBPFaceRecognizer
+from algoritmos.face_recognition_ssd import SSDFaceDetector
+from algoritmos.face_recognition_yolo import YOLOFaceDetector
+from algoritmos.face_recognition_blazeface import BlazeFaceDetector
 
 from performance_monitor import PerformanceMonitor
 from config import RESOLUTION_OPTIONS, FPS_OPTIONS
@@ -34,10 +34,10 @@ class CameraFeedController:
 
         try:
             self.camera = Camera(camera_index=self.camera_index)
-            self.face_recognizer = ViolaFaceRecognizer() 
+            #self.face_recognizer = ViolaFaceRecognizer() 
             #self.face_recognizer = DLIBFaceRecognizer() 
             #self.face_recognizer = LBPFaceRecognizer() 
-            #self.face_recognizer = BlazeFaceDetector()
+            self.face_recognizer = BlazeFaceDetector()
             
             #self.face_recognizer = SSDFaceDetector() -> RASP DESLIGA!
             #self.face_recognizer = YOLOFaceDetector() -> RASP DESLIGA!

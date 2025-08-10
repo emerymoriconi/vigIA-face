@@ -33,4 +33,3 @@ Frames Processados: 637
 Tempo Médio de Processamento: 10.46 ms
 Uso Médio da CPU: 44.34 %
 ------------------------------
-
