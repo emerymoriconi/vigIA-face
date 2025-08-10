@@ -1,17 +1,22 @@
 import tkinter as tk
 from gui import GUI
 from camera import Camera
-from face_recognition import FaceRecognizer
-from face_recognition_hog import HOGFaceRecognizer
-from face_recognition_mtcnn import MTCNNFaceDetector
+
+from face_recognition import ViolaFaceRecognizer
+from face_recognition_hog import DLIBFaceRecognizer
 from face_recognition_lbp import LBPFaceRecognizer
 from face_recognition_ssd import SSDFaceDetector
 from face_recognition_yolo import YOLOFaceDetector
+from face_recognition_blazeface import BlazeFaceDetector
+
+from performance_monitor import PerformanceMonitor
 from config import RESOLUTION_OPTIONS, FPS_OPTIONS
+
 import time
 import threading
 import cv2
 from PIL import Image, ImageTk
+
 # Classe para controlar uma única câmera e sua GUI (como antes)
 class CameraFeedController:
     def __init__(self, master, camera_index, resolution_settings, desired_fps):
@@ -21,16 +26,19 @@ class CameraFeedController:
 
         self.real_camera_fps = 30
         self.desired_fps = desired_fps # FPS desejado vindo da MainApp
-
+    
         self.frame_counter = 0
         self.running = True
+        
+        self.performance_monitor = PerformanceMonitor()
 
         try:
             self.camera = Camera(camera_index=self.camera_index)
-            #self.face_recognizer = FaceRecognizer() -> OK!
-            #self.face_recognizer = HOGFaceRecognizer() -> OK!
-            self.face_recognizer = LBPFaceRecognizer() 
-            #self.face_recognizer = MTCNNFaceDetector() -> Problema de pacotes!
+            self.face_recognizer = ViolaFaceRecognizer() 
+            #self.face_recognizer = DLIBFaceRecognizer() 
+            #self.face_recognizer = LBPFaceRecognizer() 
+            #self.face_recognizer = BlazeFaceDetector()
+            
             #self.face_recognizer = SSDFaceDetector() -> RASP DESLIGA!
             #self.face_recognizer = YOLOFaceDetector() -> RASP DESLIGA!
             
@@ -69,7 +77,10 @@ class CameraFeedController:
                 frames_per_desired_frame = int(self.real_camera_fps / self.desired_fps)
 
             if self.desired_fps == self.real_camera_fps or (self.frame_counter % frames_per_desired_frame) < 1:
+                self.performance_monitor.start()
                 processed_frame, faces_data = self.face_recognizer.process_frame(frame)
+                self.performance_monitor.stop_and_record()
+                                
                 self.video_gui.update_video_frame(processed_frame) # Atualiza a GUI do feed
 
         self.master.after(self.delay, self.update_video)
@@ -77,8 +88,38 @@ class CameraFeedController:
     def quit_app(self):
         print(f"Liberando recursos da câmera {self.camera_index} e fechando a janela do feed...")
         self.running = False
+        
+        self.print_and_save_summary()
+        
         self.camera.release()
         self.master.destroy()
+        
+    def print_and_save_summary(self):
+        """Imprime o resumo no console e salva em arquivo."""
+        summary = self.performance_monitor.get_summary()
+        if summary:
+            print("\n" + "="*40)
+            print("         RELATÓRIO DE DESEMPENHO")
+            print("="*40)
+            print(f"Algoritmo utilizado: {self.face_recognizer.__class__.__name__}")
+            print(f"Frames processados: {summary['total_frames']}")
+            print(f"Tempo Médio de Processamento: {summary['avg_processing_time_ms']:.2f} ms")
+            print(f"Uso Médio da CPU: {summary['avg_cpu_percent']:.2f} %")
+            print("="*40 + "\n")
+
+            # Pega as configurações para salvar no arquivo
+            settings = self.get_current_settings()
+            self.performance_monitor.save_to_file(self.face_recognizer.__class__.__name__, settings)
+
+    def get_current_settings(self):
+        """Método auxiliar para obter as configurações atuais da câmera."""
+        # Pode ser necessário passar as configurações para a classe
+        # ou obtê-las de alguma forma.
+        return {
+            "width": self.camera.get_properties()['width'],
+            "height": self.camera.get_properties()['height'],
+            "desired_fps": self.desired_fps
+        }
 
     def show_error(self, message):
         error_label = tk.Label(self.master, text=message, fg="red", font=("Helvetica", 12))

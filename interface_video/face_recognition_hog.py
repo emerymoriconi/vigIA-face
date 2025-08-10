@@ -1,7 +1,7 @@
 import cv2
 import dlib 
 
-class HOGFaceRecognizer:
+class DLIBFaceRecognizer:
    
     def __init__(self):
         # O dlib já vem com um detector de faces frontais pré-treinado.

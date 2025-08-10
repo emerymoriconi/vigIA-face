@@ -1,0 +1,36 @@
+--- Relatório de Desempenho ---
+Algoritmo: ViolaFaceRecognizer
+Resolução: 2592x1944
+FPS Alvo: 30
+Frames Processados: 354
+Tempo Médio de Processamento: 16.83 ms
+Uso Médio da CPU: 56.10 %
+------------------------------
+
+--- Relatório de Desempenho ---
+Algoritmo: DLIBFaceRecognizer
+Resolução: 2592x1944
+FPS Alvo: 30
+Frames Processados: 272
+Tempo Médio de Processamento: 71.11 ms
+Uso Médio da CPU: 35.91 %
+------------------------------
+
+--- Relatório de Desempenho ---
+Algoritmo: LBPFaceRecognizer
+Resolução: 2592x1944
+FPS Alvo: 30
+Frames Processados: 326
+Tempo Médio de Processamento: 37.20 ms
+Uso Médio da CPU: 59.65 %
+------------------------------
+
+--- Relatório de Desempenho ---
+Algoritmo: BlazeFaceDetector
+Resolução: 2592x1944
+FPS Alvo: 30
+Frames Processados: 637
+Tempo Médio de Processamento: 10.46 ms
+Uso Médio da CPU: 44.34 %
+------------------------------
+

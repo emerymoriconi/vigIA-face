@@ -1,6 +1,6 @@
 import cv2
 
-class FaceRecognizer:
+class ViolaFaceRecognizer:
    
     def __init__(self, cascade_path='arquivos_algoritmos/viola-jones/haarcascade_frontalface_default.xml'):
         # Carrega o modelo pré-treinado para detecção de faces frontais
