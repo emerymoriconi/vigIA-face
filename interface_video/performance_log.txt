@@ -33,3 +33,67 @@ Frames Processados: 637
 Tempo Médio de Processamento: 10.46 ms
 Uso Médio da CPU: 44.34 %
 ------------------------------
+
+--- Relatório de Desempenho ---
+Algoritmo: SSDFaceDetector
+Resolução: 2592x1944
+FPS Alvo: 30
+Frames Processados: 231
+Tempo Médio de Processamento: 79.54 ms
+Uso Médio da CPU: 69.78 %
+------------------------------
+
+--- Relatório de Desempenho ---
+Algoritmo: YOLOFaceDetector
+Resolução: 2592x1944
+FPS Alvo: 30
+Frames Processados: 181
+Tempo Médio de Processamento: 175.13 ms
+Uso Médio da CPU: 77.18 %
+------------------------------
+
+--- Relatório de Desempenho ---
+Algoritmo: ViolaFaceRecognizer
+Resolução: 2592x1944
+FPS Alvo: 15
+Frames Processados: 405
+Tempo Médio de Processamento: 21.77 ms
+Uso Médio da CPU: 47.46 %
+------------------------------
+
+--- Relatório de Desempenho ---
+Algoritmo: DLIBFaceRecognizer
+Resolução: 2592x1944
+FPS Alvo: 15
+Frames Processados: 254
+Tempo Médio de Processamento: 36.12 ms
+Uso Médio da CPU: 33.89 %
+------------------------------
+
+--- Relatório de Desempenho ---
+Algoritmo: LBPFaceRecognizer
+Resolução: 2592x1944
+FPS Alvo: 15
+Frames Processados: 356
+Tempo Médio de Processamento: 20.38 ms
+Uso Médio da CPU: 44.53 %
+------------------------------
+
+--- Relatório de Desempenho ---
+Algoritmo: BlazeFaceDetector
+Resolução: 2592x1944
+FPS Alvo: 15
+Frames Processados: 546
+Tempo Médio de Processamento: 8.02 ms
+Uso Médio da CPU: 30.05 %
+------------------------------
+
+--- Relatório de Desempenho ---
+Algoritmo: SSDFaceDetector
+Resolução: 2592x1944
+FPS Alvo: 15
+Frames Processados: 241
+Tempo Médio de Processamento: 80.52 ms
+Uso Médio da CPU: 63.73 %
+------------------------------
+

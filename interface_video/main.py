@@ -38,9 +38,9 @@ class CameraFeedController:
             #self.face_recognizer = DLIBFaceRecognizer() 
             #self.face_recognizer = LBPFaceRecognizer() 
             self.face_recognizer = BlazeFaceDetector()
+            #self.face_recognizer = SSDFaceDetector()
             
-            #self.face_recognizer = SSDFaceDetector() -> RASP DESLIGA!
-            #self.face_recognizer = YOLOFaceDetector() -> RASP DESLIGA!
+            #self.face_recognizer = YOLOFaceDetector() 
             
             # Cria uma GUI simplificada para a janela do feed, sem os controles de seleção de câmera
             # Pois esses controles já foram definidos na MainApp.
