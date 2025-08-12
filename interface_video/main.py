@@ -37,8 +37,8 @@ class CameraFeedController:
             #self.face_recognizer = ViolaFaceRecognizer() 
             #self.face_recognizer = DLIBFaceRecognizer() 
             #self.face_recognizer = LBPFaceRecognizer() 
-            self.face_recognizer = BlazeFaceDetector()
-            #self.face_recognizer = SSDFaceDetector()
+            #self.face_recognizer = BlazeFaceDetector()
+            self.face_recognizer = SSDFaceDetector()
             
             #self.face_recognizer = YOLOFaceDetector() 
             

@@ -97,3 +97,93 @@ Tempo Médio de Processamento: 80.52 ms
 Uso Médio da CPU: 63.73 %
 ------------------------------
 
+--- Relatório de Desempenho ---
+Algoritmo: ViolaFaceRecognizer
+Resolução: 2592x1944
+FPS Alvo: 10
+Frames Processados: 233
+Tempo Médio de Processamento: 21.33 ms
+Uso Médio da CPU: 42.34 %
+------------------------------
+
+--- Relatório de Desempenho ---
+Algoritmo: DLIBFaceRecognizer
+Resolução: 2592x1944
+FPS Alvo: 10
+Frames Processados: 198
+Tempo Médio de Processamento: 49.30 ms
+Uso Médio da CPU: 31.61 %
+------------------------------
+
+--- Relatório de Desempenho ---
+Algoritmo: LBPFaceRecognizer
+Resolução: 2592x1944
+FPS Alvo: 10
+Frames Processados: 274
+Tempo Médio de Processamento: 24.77 ms
+Uso Médio da CPU: 42.09 %
+------------------------------
+
+--- Relatório de Desempenho ---
+Algoritmo: BlazeFaceDetector
+Resolução: 2592x1944
+FPS Alvo: 10
+Frames Processados: 397
+Tempo Médio de Processamento: 8.37 ms
+Uso Médio da CPU: 28.89 %
+------------------------------
+
+--- Relatório de Desempenho ---
+Algoritmo: SSDFaceDetector
+Resolução: 2592x1944
+FPS Alvo: 10
+Frames Processados: 144
+Tempo Médio de Processamento: 87.55 ms
+Uso Médio da CPU: 58.31 %
+------------------------------
+
+--- Relatório de Desempenho ---
+Algoritmo: ViolaFaceRecognizer
+Resolução: 2592x1944
+FPS Alvo: 5
+Frames Processados: 191
+Tempo Médio de Processamento: 26.47 ms
+Uso Médio da CPU: 33.36 %
+------------------------------
+
+--- Relatório de Desempenho ---
+Algoritmo: DLIBFaceRecognizer
+Resolução: 2592x1944
+FPS Alvo: 5
+Frames Processados: 178
+Tempo Médio de Processamento: 49.65 ms
+Uso Médio da CPU: 27.27 %
+------------------------------
+
+--- Relatório de Desempenho ---
+Algoritmo: LBPFaceRecognizer
+Resolução: 2592x1944
+FPS Alvo: 5
+Frames Processados: 136
+Tempo Médio de Processamento: 28.33 ms
+Uso Médio da CPU: 32.60 %
+------------------------------
+
+--- Relatório de Desempenho ---
+Algoritmo: BlazeFaceDetector
+Resolução: 2592x1944
+FPS Alvo: 5
+Frames Processados: 269
+Tempo Médio de Processamento: 8.58 ms
+Uso Médio da CPU: 25.43 %
+------------------------------
+
+--- Relatório de Desempenho ---
+Algoritmo: SSDFaceDetector
+Resolução: 2592x1944
+FPS Alvo: 5
+Frames Processados: 179
+Tempo Médio de Processamento: 76.08 ms
+Uso Médio da CPU: 43.42 %
+------------------------------
+
