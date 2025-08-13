@@ -6,7 +6,7 @@ from algoritmos.face_recognition import ViolaFaceRecognizer
 from algoritmos.face_recognition_hog import DLIBFaceRecognizer
 from algoritmos.face_recognition_lbp import LBPFaceRecognizer
 from algoritmos.face_recognition_ssd import SSDFaceDetector
-from algoritmos.face_recognition_yolo import YOLOFaceDetector
+from algoritmos.face_recognition_yolo import YOLOv8FaceDetector
 from algoritmos.face_recognition_blazeface import BlazeFaceDetector
 
 from performance_monitor import PerformanceMonitor
@@ -19,7 +19,7 @@ from PIL import Image, ImageTk
 
 # Classe para controlar uma única câmera e sua GUI (como antes)
 class CameraFeedController:
-    def __init__(self, master, camera_index, resolution_settings, desired_fps):
+    def __init__(self, master, camera_index, resolution_settings, desired_fps, face_recognizer_instance):
         self.master = master
         self.camera_index = camera_index
         self.master.title(f"Câmera {self.camera_index} - Vídeo Feed")
@@ -34,13 +34,7 @@ class CameraFeedController:
 
         try:
             self.camera = Camera(camera_index=self.camera_index)
-            #self.face_recognizer = ViolaFaceRecognizer() 
-            #self.face_recognizer = DLIBFaceRecognizer() 
-            #self.face_recognizer = LBPFaceRecognizer() 
-            #self.face_recognizer = BlazeFaceDetector()
-            self.face_recognizer = SSDFaceDetector()
-            
-            #self.face_recognizer = YOLOFaceDetector() 
+            self.face_recognizer = face_recognizer_instance
             
             # Cria uma GUI simplificada para a janela do feed, sem os controles de seleção de câmera
             # Pois esses controles já foram definidos na MainApp.
@@ -156,11 +150,19 @@ class MainApp:
 
         self.camera_controllers = [] # Lista para manter referências a todos os controladores de câmera ativos
         self.camera_threads = [] # Lista para manter referências às threads
+        
+        #self.face_recognizer = ViolaFaceRecognizer() 
+        #self.face_recognizer = DLIBFaceRecognizer() 
+        #self.face_recognizer = LBPFaceRecognizer() 
+        #self.face_recognizer = BlazeFaceDetector()
+        #self.face_recognizer = SSDFaceDetector()
+        
+        self.face_recognizer = YOLOv8FaceDetector()
 
-    def _launch_single_camera_controller(self, camera_index, resolution_settings, desired_fps):
+    def _launch_single_camera_controller(self, camera_index, resolution_settings, desired_fps,face_recognizer_instance):
         """Lança um CameraFeedController em uma nova janela Toplevel."""
         top_level = tk.Toplevel(self.root)
-        controller = CameraFeedController(top_level, camera_index, resolution_settings, desired_fps)
+        controller = CameraFeedController(top_level, camera_index, resolution_settings, desired_fps, face_recognizer_instance)
         self.camera_controllers.append(controller)
 
     def apply_settings(self):
@@ -183,7 +185,7 @@ class MainApp:
             camera_index = settings['camera_index']
             # Lança o controlador da câmera em uma nova thread para evitar bloqueio da GUI
             thread = threading.Thread(target=self._launch_single_camera_controller, 
-                                      args=(camera_index, resolution_settings, desired_fps))
+                                      args=(camera_index, resolution_settings, desired_fps, self.face_recognizer))
             self.camera_threads.append(thread)
             thread.start()
         elif settings['mode'] == "Múltiplas Câmeras":
@@ -199,7 +201,7 @@ class MainApp:
             # for idx in detected_indices:
             for idx in range(num_detected_cameras):
                 thread = threading.Thread(target=self._launch_single_camera_controller, 
-                                          args=(idx, resolution_settings, desired_fps))
+                                          args=(idx, resolution_settings, desired_fps, self.face_recognizer))
                 self.camera_threads.append(thread)
                 thread.start()
 

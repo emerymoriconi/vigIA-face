@@ -44,15 +44,6 @@ Uso Médio da CPU: 69.78 %
 ------------------------------
 
 --- Relatório de Desempenho ---
-Algoritmo: YOLOFaceDetector
-Resolução: 2592x1944
-FPS Alvo: 30
-Frames Processados: 181
-Tempo Médio de Processamento: 175.13 ms
-Uso Médio da CPU: 77.18 %
-------------------------------
-
---- Relatório de Desempenho ---
 Algoritmo: ViolaFaceRecognizer
 Resolução: 2592x1944
 FPS Alvo: 15
@@ -187,3 +178,41 @@ Tempo Médio de Processamento: 76.08 ms
 Uso Médio da CPU: 43.42 %
 ------------------------------
 
+
+
+
+--- Relatório de Desempenho ---
+Algoritmo: YOLOv8FaceDetector
+Resolução: 2592x1944
+FPS Alvo: 30
+Frames Processados: 36
+Tempo Médio de Processamento: 418.06 ms
+Uso Médio da CPU: 48.36 %
+------------------------------
+
+--- Relatório de Desempenho ---
+Algoritmo: YOLOv8FaceDetector
+Resolução: 2592x1944
+FPS Alvo: 15
+Frames Processados: 51
+Tempo Médio de Processamento: 430.44 ms
+Uso Médio da CPU: 49.50 %
+------------------------------
+
+--- Relatório de Desempenho ---
+Algoritmo: YOLOv8FaceDetector
+Resolução: 2592x1944
+FPS Alvo: 10
+Frames Processados: 38
+Tempo Médio de Processamento: 452.55 ms
+Uso Médio da CPU: 48.24 %
+------------------------------
+
+--- Relatório de Desempenho ---
+Algoritmo: YOLOv8FaceDetector
+Resolução: 2592x1944
+FPS Alvo: 5
+Frames Processados: 54
+Tempo Médio de Processamento: 465.98 ms
+Uso Médio da CPU: 45.41 %
+------------------------------
