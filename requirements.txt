@@ -5,3 +5,4 @@ pillow==11.2.1
 dlib
 psutil
 mediapipe
+ultralytics
