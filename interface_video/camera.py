@@ -50,6 +50,7 @@ class Camera:
         if frame is not None:
             print("Frame capturado")
             frame_bgr = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
+            
             return (True, frame_bgr)
         print("Falha ao capturar frame")
         return (False, None)

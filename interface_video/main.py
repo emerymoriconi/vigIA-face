@@ -8,7 +8,7 @@ from algoritmos.face_recognition_lbp import LBPFaceRecognizer
 from algoritmos.face_recognition_ssd import SSDFaceDetector
 from algoritmos.face_recognition_yolo import YOLOv8FaceDetector
 from algoritmos.face_recognition_blazeface import BlazeFaceDetector
-
+from algoritmos.face_recognition_dlibyollo import DLIBYOLLOFaceRecognizer
 from performance_monitor import PerformanceMonitor
 from config import RESOLUTION_OPTIONS, FPS_OPTIONS
 
@@ -156,8 +156,9 @@ class MainApp:
         #self.face_recognizer = LBPFaceRecognizer() 
         #self.face_recognizer = BlazeFaceDetector()
         #self.face_recognizer = SSDFaceDetector()
+        self.face_recognizer = DLIBYOLLOFaceRecognizer() 
         
-        self.face_recognizer = YOLOv8FaceDetector()
+        #self.face_recognizer = YOLOv8FaceDetector()
 
     def _launch_single_camera_controller(self, camera_index, resolution_settings, desired_fps,face_recognizer_instance):
         """Lança um CameraFeedController em uma nova janela Toplevel."""
