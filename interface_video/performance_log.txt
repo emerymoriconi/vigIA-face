@@ -958,3 +958,174 @@ Tempo Médio de Processamento: 87.02 ms
 Uso Médio da CPU: 37.87 %
 ------------------------------
 
+--- Relatório de Desempenho ---
+Algoritmo: DLIBYOLLOFaceRecognizer
+Resolução: 2592x1944
+FPS Alvo: 30
+Frames Processados: 271
+Tempo Médio de Processamento: 94.23 ms
+Uso Médio da CPU: 35.27 %
+------------------------------
+
+--- Relatório de Desempenho ---
+Algoritmo: DLIBYOLLOFaceRecognizer
+Resolução: 2592x1944
+FPS Alvo: 15
+Frames Processados: 29
+Tempo Médio de Processamento: 48.53 ms
+Uso Médio da CPU: 48.22 %
+------------------------------
+
+--- Relatório de Desempenho ---
+Algoritmo: DLIBYOLLOFaceRecognizer
+Resolução: 2592x1944
+FPS Alvo: 15
+Frames Processados: 40
+Tempo Médio de Processamento: 48.22 ms
+Uso Médio da CPU: 44.46 %
+------------------------------
+
+--- Relatório de Desempenho ---
+Algoritmo: DLIBYOLLOFaceRecognizer
+Resolução: 2592x1944
+FPS Alvo: 15
+Frames Processados: 51
+Tempo Médio de Processamento: 48.07 ms
+Uso Médio da CPU: 49.40 %
+------------------------------
+
+--- Relatório de Desempenho ---
+Algoritmo: DLIBYOLLOFaceRecognizer
+Resolução: 2592x1944
+FPS Alvo: 15
+Frames Processados: 63
+Tempo Médio de Processamento: 49.28 ms
+Uso Médio da CPU: 45.48 %
+------------------------------
+
+--- Relatório de Desempenho ---
+Algoritmo: DLIBYOLLOFaceRecognizer
+Resolução: 2592x1944
+FPS Alvo: 30
+Frames Processados: 159
+Tempo Médio de Processamento: 72.25 ms
+Uso Médio da CPU: 24.62 %
+------------------------------
+
+--- Relatório de Desempenho ---
+Algoritmo: DLIBYOLLOFaceRecognizer
+Resolução: 2592x1944
+FPS Alvo: 30
+Frames Processados: 125
+Tempo Médio de Processamento: 62.62 ms
+Uso Médio da CPU: 24.31 %
+------------------------------
+
+--- Relatório de Desempenho ---
+Algoritmo: DLIBYOLLOFaceRecognizer
+Resolução: 2592x1944
+FPS Alvo: 15
+Frames Processados: 202
+Tempo Médio de Processamento: 71.60 ms
+Uso Médio da CPU: 25.77 %
+------------------------------
+
+--- Relatório de Desempenho ---
+Algoritmo: DLIBYOLLOFaceRecognizer
+Resolução: 2592x1944
+FPS Alvo: 15
+Frames Processados: 215
+Tempo Médio de Processamento: 49.25 ms
+Uso Médio da CPU: 29.52 %
+------------------------------
+
+--- Relatório de Desempenho ---
+Algoritmo: DLIBYOLLOFaceRecognizer
+Resolução: 640x480
+FPS Alvo: 30
+Frames Processados: 156
+Tempo Médio de Processamento: 128.31 ms
+Uso Médio da CPU: 19.39 %
+------------------------------
+
+--- Relatório de Desempenho ---
+Algoritmo: DLIBYOLLOFaceRecognizer
+Resolução: 640x480
+FPS Alvo: 30
+Frames Processados: 71
+Tempo Médio de Processamento: 109.89 ms
+Uso Médio da CPU: 18.66 %
+------------------------------
+
+--- Relatório de Desempenho ---
+Algoritmo: DLIBYOLLOFaceRecognizer
+Resolução: 640x480
+FPS Alvo: 15
+Frames Processados: 160
+Tempo Médio de Processamento: 45.46 ms
+Uso Médio da CPU: 16.73 %
+------------------------------
+
+--- Relatório de Desempenho ---
+Algoritmo: DLIBYOLLOFaceRecognizer
+Resolução: 2592x1944
+FPS Alvo: 15
+Frames Processados: 173
+Tempo Médio de Processamento: 45.25 ms
+Uso Médio da CPU: 24.38 %
+------------------------------
+
+--- Relatório de Desempenho ---
+Algoritmo: DLIBYOLLOFaceRecognizer
+Resolução: 2592x1944
+FPS Alvo: 15
+Frames Processados: 188
+Tempo Médio de Processamento: 45.32 ms
+Uso Médio da CPU: 29.39 %
+------------------------------
+
+--- Relatório de Desempenho ---
+Algoritmo: DLIBYOLLOFaceRecognizer
+Resolução: 640x480
+FPS Alvo: 30
+Frames Processados: 34
+Tempo Médio de Processamento: 45.06 ms
+Uso Médio da CPU: 13.76 %
+------------------------------
+
+--- Relatório de Desempenho ---
+Algoritmo: DLIBYOLLOFaceRecognizer
+Resolução: 640x480
+FPS Alvo: 15
+Frames Processados: 21
+Tempo Médio de Processamento: 45.72 ms
+Uso Médio da CPU: 7.67 %
+------------------------------
+
+--- Relatório de Desempenho ---
+Algoritmo: DLIBYOLLOFaceRecognizer
+Resolução: 640x480
+FPS Alvo: 10
+Frames Processados: 10
+Tempo Médio de Processamento: 47.05 ms
+Uso Médio da CPU: 5.66 %
+------------------------------
+
+--- Relatório de Desempenho ---
+Algoritmo: DLIBYOLLOFaceRecognizer
+Resolução: 640x480
+FPS Alvo: 5
+Frames Processados: 6
+Tempo Médio de Processamento: 44.32 ms
+Uso Médio da CPU: 3.90 %
+------------------------------
+
+--- Relatório de Desempenho ---
+Algoritmo: DLIBYOLLOFaceRecognizer
+Resolução: 640x480
+FPS Alvo: 30
+Frames Processados: 151
+Tempo Médio de Processamento: 90.97 ms
+Uso Médio da CPU: 15.99 %
+------------------------------
+
