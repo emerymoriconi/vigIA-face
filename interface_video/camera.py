@@ -12,6 +12,7 @@ class Camera:
         """
         self.camera_index = camera_index
         self.use_opencv = use_opencv
+        self.frame_buffer = None  # Cache do último frame válido
         
         if use_opencv:
             # USB - OpenCV
@@ -118,18 +119,22 @@ class Camera:
 
     def get_frame(self):
         if self.use_opencv:
-            # USB/OpenCV
-            ret, frame = self.vid.read()
+            # USB/OpenCV - lê várias vezes para limpar buffer
+            for _ in range(2):  # Descarta frames antigos do buffer
+                self.vid.grab()
+            ret, frame = self.vid.retrieve()
             if ret and frame is not None:
+                self.frame_buffer = frame
                 return (True, frame)
-            return (False, None)
+            return (False, self.frame_buffer)
         else:
             # CSI/Picamera2
             frame = self.vid.capture_array("main")
             if frame is not None:
                 frame_bgr = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
+                self.frame_buffer = frame_bgr
                 return (True, frame_bgr)
-            return (False, None)
+            return (False, self.frame_buffer)
 
     def release(self):
         try:
