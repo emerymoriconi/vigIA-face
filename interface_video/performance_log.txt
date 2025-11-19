@@ -1309,3 +1309,21 @@ Tempo Médio de Processamento: 125.80 ms
 Uso Médio da CPU: 83.46 %
 ------------------------------
 
+--- Relatório de Desempenho ---
+Algoritmo: DLIBYOLLOFaceRecognizer
+Resolução: 640x480
+FPS Alvo: 30
+Frames Processados: 181
+Tempo Médio de Processamento: 227.04 ms
+Uso Médio da CPU: 33.74 %
+------------------------------
+
+--- Relatório de Desempenho ---
+Algoritmo: DLIBYOLLOFaceRecognizer
+Resolução: 640x480
+FPS Alvo: 15
+Frames Processados: 241
+Tempo Médio de Processamento: 165.60 ms
+Uso Médio da CPU: 30.82 %
+------------------------------
+
