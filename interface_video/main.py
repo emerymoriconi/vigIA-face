@@ -1,114 +1,188 @@
 import tkinter as tk
 from gui import GUI
 from camera import Camera
-
-from algoritmos.face_recognition import ViolaFaceRecognizer
-from algoritmos.face_recognition_hog import DLIBFaceRecognizer
-from algoritmos.face_recognition_lbp import LBPFaceRecognizer
-from algoritmos.face_recognition_ssd import SSDFaceDetector
-from algoritmos.face_recognition_yolo import YOLOv8FaceDetector
-from algoritmos.face_recognition_blazeface import BlazeFaceDetector
-
+from algoritmos.face_recognition_dlibyollo import DLIBYOLLOFaceRecognizer
 from performance_monitor import PerformanceMonitor
 from config import RESOLUTION_OPTIONS, FPS_OPTIONS
-
 import time
 import threading
 import cv2
 from PIL import Image, ImageTk
+from queue import Queue, Empty
 
-# Classe para controlar uma única câmera e sua GUI (como antes)
-class CameraFeedController:
-    def __init__(self, master, camera_index, resolution_settings, desired_fps, face_recognizer_instance):
-        self.master = master
-        self.camera_index = camera_index
-        self.master.title(f"Câmera {self.camera_index} - Vídeo Feed")
-
-        self.real_camera_fps = 30
-        self.desired_fps = desired_fps # FPS desejado vindo da MainApp
-    
-        self.frame_counter = 0
+class CaptureThread(threading.Thread):
+    """Thread Producer: Captura frames continuamente"""
+    def __init__(self, camera, frame_queue):
+        super().__init__(daemon=True)
+        self.camera = camera
+        self.frame_queue = frame_queue
         self.running = True
         
+    def run(self):
+        while self.running:
+            ret, frame = self.camera.get_frame()
+            if ret and frame is not None:
+                # Descarta frame antigo se fila cheia (mantém apenas recente)
+                if self.frame_queue.full():
+                    try:
+                        self.frame_queue.get_nowait()
+                    except Empty:
+                        pass
+                
+                try:
+                    self.frame_queue.put(frame, block=False)
+                except:
+                    pass
+            time.sleep(0.001)  # 1ms delay mínimo
+    
+    def stop(self):
+        self.running = False
+
+class ProcessingThread(threading.Thread):
+    """Thread Consumer: Processa frames da fila"""
+    def __init__(self, frame_queue, result_queue, face_recognizer, performance_monitor):
+        super().__init__(daemon=True)
+        self.frame_queue = frame_queue
+        self.result_queue = result_queue
+        self.face_recognizer = face_recognizer
+        self.performance_monitor = performance_monitor
+        self.running = True
+        
+    def run(self):
+        while self.running:
+            try:
+                # Pega frame da fila (timeout 0.5s)
+                frame = self.frame_queue.get(timeout=0.5)
+                
+                # Processa
+                self.performance_monitor.start()
+                processed_frame, faces_data = self.face_recognizer.process_frame(frame)
+                self.performance_monitor.stop_and_record()
+                
+                # Coloca resultado (descarta antigo se cheio)
+                if self.result_queue.full():
+                    try:
+                        self.result_queue.get_nowait()
+                    except Empty:
+                        pass
+                
+                try:
+                    self.result_queue.put(processed_frame, block=False)
+                except:
+                    pass
+                    
+            except Empty:
+                continue
+            except Exception as e:
+                print(f"Erro no processamento: {e}")
+    
+    def stop(self):
+        self.running = False
+
+class CameraFeedController:
+    def __init__(self, master, camera_info, resolution_settings, desired_fps, face_recognizer_instance):
+        """
+        Args:
+            camera_info: Dict com {index, name, type, use_opencv}
+        """
+        self.master = master
+        self.camera_info = camera_info
+        self.camera_index = camera_info['index']
+        
+        self.master.title(f"[{camera_info['type']}] {camera_info['name']}")
+
+        self.desired_fps = desired_fps
+        self.running = True
         self.performance_monitor = PerformanceMonitor()
 
         try:
-            self.camera = Camera(camera_index=self.camera_index)
-            self.face_recognizer = face_recognizer_instance
+            # Inicializa câmera
+            self.camera = Camera(
+                camera_index=self.camera_index,
+                use_opencv=camera_info['use_opencv']
+            )
             
-            # Cria uma GUI simplificada para a janela do feed, sem os controles de seleção de câmera
-            # Pois esses controles já foram definidos na MainApp.
-            self.video_gui = VideoFeedGUI(master) # Usaremos uma nova classe VideoFeedGUI para as janelas de feed
-
-            self.master.protocol("WM_DELETE_WINDOW", self.quit_app)
-
             actual_camera_props = self.camera.set_properties(
                 width=resolution_settings['width'],
                 height=resolution_settings['height'],
             )
 
-            print(f"Câmera {self.camera_index} iniciada com resolução {resolution_settings['width']}x{resolution_settings['height']} e FPS simulado {self.desired_fps}.")
-            print(f"Configurações reais da câmera {self.camera_index}: {actual_camera_props}")
+            # Cria filas (pequenas para baixa latência)
+            self.frame_queue = Queue(maxsize=2)    # Buffer de captura
+            self.result_queue = Queue(maxsize=1)   # Buffer de resultado
+            
+            # Inicia threads Producer-Consumer
+            self.capture_thread = CaptureThread(self.camera, self.frame_queue)
+            self.processing_thread = ProcessingThread(
+                self.frame_queue, 
+                self.result_queue, 
+                face_recognizer_instance,
+                self.performance_monitor
+            )
+            
+            self.capture_thread.start()
+            self.processing_thread.start()
+            
+            self.video_gui = VideoFeedGUI(master)
+            self.master.protocol("WM_DELETE_WINDOW", self.quit_app)
 
-            self.delay = 15
-            self.update_video()
+            print(f"Câmera {self.camera_index} iniciada: {actual_camera_props}")
 
-        except (ValueError, IOError) as e:
+            # Loop de exibição (busca resultados processados)
+            self.delay = 15  # ~60 FPS de atualização da GUI
+            self.update_display()
+
+        except Exception as e:
             self.show_error(str(e))
 
-    def update_video(self):
+    def update_display(self):
+        """Loop de exibição: busca frames processados e exibe"""
         if not self.running:
             return
-
-        ret, frame = self.camera.get_frame()
-
-        if ret:
-            self.frame_counter += 1
-
-            if self.desired_fps <= 0:
-                frames_per_desired_frame = 1.0
-            else:
-                frames_per_desired_frame = int(self.real_camera_fps / self.desired_fps)
-
-            if self.desired_fps == self.real_camera_fps or (self.frame_counter % frames_per_desired_frame) < 1:
-                self.performance_monitor.start()
-                processed_frame, faces_data = self.face_recognizer.process_frame(frame)
-                self.performance_monitor.stop_and_record()
-                                
-                self.video_gui.update_video_frame(processed_frame) # Atualiza a GUI do feed
-
-        self.master.after(self.delay, self.update_video)
+        
+        # Tenta pegar frame processado
+        try:
+            processed_frame = self.result_queue.get_nowait()
+            self.video_gui.update_video_frame(processed_frame)
+        except Empty:
+            pass  # Nenhum frame novo, ok
+        
+        self.master.after(self.delay, self.update_display)
 
     def quit_app(self):
-        print(f"Liberando recursos da câmera {self.camera_index} e fechando a janela do feed...")
+        print(f"Liberando câmera {self.camera_index}...")
         self.running = False
         
-        self.print_and_save_summary()
+        # Para threads
+        self.capture_thread.stop()
+        self.processing_thread.stop()
         
+        # Aguarda finalização
+        self.capture_thread.join(timeout=2)
+        self.processing_thread.join(timeout=2)
+        
+        self.print_and_save_summary()
         self.camera.release()
         self.master.destroy()
         
     def print_and_save_summary(self):
-        """Imprime o resumo no console e salva em arquivo."""
         summary = self.performance_monitor.get_summary()
         if summary:
             print("\n" + "="*40)
-            print("         RELATÓRIO DE DESEMPENHO")
+            print(f"  Câmera {self.camera_index} - DESEMPENHO")
             print("="*40)
-            print(f"Algoritmo utilizado: {self.face_recognizer.__class__.__name__}")
             print(f"Frames processados: {summary['total_frames']}")
-            print(f"Tempo Médio de Processamento: {summary['avg_processing_time_ms']:.2f} ms")
-            print(f"Uso Médio da CPU: {summary['avg_cpu_percent']:.2f} %")
+            print(f"Tempo Médio: {summary['avg_processing_time_ms']:.2f} ms")
+            print(f"CPU Média: {summary['avg_cpu_percent']:.2f} %")
             print("="*40 + "\n")
 
-            # Pega as configurações para salvar no arquivo
             settings = self.get_current_settings()
-            self.performance_monitor.save_to_file(self.face_recognizer.__class__.__name__, settings)
+            self.performance_monitor.save_to_file(
+                "DLIBYOLLOFaceRecognizer", 
+                settings
+            )
 
     def get_current_settings(self):
-        """Método auxiliar para obter as configurações atuais da câmera."""
-        # Pode ser necessário passar as configurações para a classe
-        # ou obtê-las de alguma forma.
         return {
             "width": self.camera.get_properties()['width'],
             "height": self.camera.get_properties()['height'],
@@ -120,13 +194,12 @@ class CameraFeedController:
         error_label.pack(pady=20, padx=20)
 
 
-# Nova classe para a GUI das janelas de vídeo (simplificada, apenas o canvas)
 class VideoFeedGUI:
     def __init__(self, master):
         self.master = master
         self.canvas = tk.Canvas(master, bg="black")
         self.canvas.pack(fill=tk.BOTH, expand=True)
-        self.photo = None # Para manter a referência da imagem
+        self.photo = None
 
     def update_video_frame(self, frame):
         h, w, _ = frame.shape
@@ -139,91 +212,96 @@ class VideoFeedGUI:
         self.canvas.create_image(0, 0, image=self.photo, anchor=tk.NW)
 
 
-# Classe da aplicação principal que gerencia a GUI de controle e os controladores de câmera
 class MainApp:
     def __init__(self, root):
         self.root = root
         self.root.title("Controle Central de Câmeras")
 
-        self.gui = GUI(root, title="Controle Central de Câmeras")
+        # Detecta câmeras
+        self.available_cameras = Camera.detect_available_cameras()
+        
+        self.gui = GUI(
+            root, 
+            available_cameras=self.available_cameras,
+            title="Controle Central de Câmeras"
+        )
         self.gui.set_callbacks(self.apply_settings, self.quit_app)
 
-        self.camera_controllers = [] # Lista para manter referências a todos os controladores de câmera ativos
-        self.camera_threads = [] # Lista para manter referências às threads
+        self.camera_controllers = []
+        self.launch_threads = []
         
-        #self.face_recognizer = ViolaFaceRecognizer() 
-        #self.face_recognizer = DLIBFaceRecognizer() 
-        #self.face_recognizer = LBPFaceRecognizer() 
-        #self.face_recognizer = BlazeFaceDetector()
-        #self.face_recognizer = SSDFaceDetector()
-        
-        self.face_recognizer = YOLOv8FaceDetector()
+        # Recognizer por câmera (evita concorrência)
+        self.face_recognizers = {}
 
-    def _launch_single_camera_controller(self, camera_index, resolution_settings, desired_fps,face_recognizer_instance):
-        """Lança um CameraFeedController em uma nova janela Toplevel."""
+    def _launch_single_camera_controller(self, camera_info, resolution_settings, desired_fps):
+        """Lança controlador em nova janela"""
+        cam_idx = camera_info['index']
+        
+        # Cria recognizer para esta câmera
+        self.face_recognizers[cam_idx] = DLIBYOLLOFaceRecognizer()
+        
         top_level = tk.Toplevel(self.root)
-        controller = CameraFeedController(top_level, camera_index, resolution_settings, desired_fps, face_recognizer_instance)
+        controller = CameraFeedController(
+            top_level, 
+            camera_info, 
+            resolution_settings, 
+            desired_fps, 
+            self.face_recognizers[cam_idx]
+        )
         self.camera_controllers.append(controller)
 
     def apply_settings(self):
-        """
-        Callback para o botão 'Aplicar Configurações'.
-        Inicia ou reinicia as câmeras com base no modo selecionado.
-        """
         settings = self.gui.get_settings()
         if not settings:
-            print("Nenhuma configuração válida selecionada.")
+            print("Configurações inválidas")
             return
 
-        # Primeiro, fecha todas as câmeras e limpa os controladores existentes
         self._shutdown_all_cameras()
 
-        resolution_settings = {'width': settings['width'], 'height': settings['height']}
+        resolution_settings = {
+            'width': settings['width'], 
+            'height': settings['height']
+        }
         desired_fps = settings['desired_fps']
 
         if settings['mode'] == "Câmera Única":
-            camera_index = settings['camera_index']
-            # Lança o controlador da câmera em uma nova thread para evitar bloqueio da GUI
-            thread = threading.Thread(target=self._launch_single_camera_controller, 
-                                      args=(camera_index, resolution_settings, desired_fps, self.face_recognizer))
-            self.camera_threads.append(thread)
-            thread.start()
-        elif settings['mode'] == "Múltiplas Câmeras":
-            # Aqui, você pode detectar automaticamente as câmeras disponíveis
-            # ou usar um número fixo (ex: 0, 1, 2)
-            num_detected_cameras = 2 # Exemplo: assume 2 câmeras para demonstração
-            
-            if desired_fps > 15:
-                print(f"fps reduzido para {15} para evitar sobrecarga.")
-                desired_fps = 15
-            # Lógica para detectar câmeras pode ser adicionada aqui, como:
-            # detected_indices = self._detect_available_cameras()
-            # for idx in detected_indices:
-            for idx in range(num_detected_cameras):
-                thread = threading.Thread(target=self._launch_single_camera_controller, 
-                                          args=(idx, resolution_settings, desired_fps, self.face_recognizer))
-                self.camera_threads.append(thread)
+            if settings['camera_info']:
+                thread = threading.Thread(
+                    target=self._launch_single_camera_controller,
+                    args=(settings['camera_info'], resolution_settings, desired_fps)
+                )
+                self.launch_threads.append(thread)
                 thread.start()
+                
+        elif settings['mode'] == "Múltiplas Câmeras":
+            if desired_fps > 15:
+                print("FPS reduzido para 15 (múltiplas câmeras)")
+                desired_fps = 15
+            
+            for camera_info in self.available_cameras:
+                thread = threading.Thread(
+                    target=self._launch_single_camera_controller,
+                    args=(camera_info, resolution_settings, desired_fps)
+                )
+                self.launch_threads.append(thread)
+                thread.start()
+                time.sleep(0.5)
 
-        print(f"Modo '{settings['mode']}' aplicado com Resolução {settings['width']}x{settings['height']} e FPS {settings['desired_fps']}.")
+        print(f"Modo '{settings['mode']}' aplicado")
 
     def _shutdown_all_cameras(self):
-        """Desliga todos os controladores de câmera e limpa as listas."""
         for controller in self.camera_controllers:
             if controller.running:
-                controller.quit_app() # Isso irá chamar master.destroy() para a janela Toplevel
+                controller.quit_app()
 
-        # Limpa as listas após um pequeno atraso para permitir que as threads finalizem
         self.camera_controllers = []
-        self.camera_threads = []
-        # Pode ser necessário um join() para as threads se a sincronização for crítica,
-        # mas para este caso de encerramento, não é estritamente necessário bloquear.
-        time.sleep(1) # Dá um tempo para as janelas se fecharem
+        self.launch_threads = []
+        self.face_recognizers = {}
+        time.sleep(1)
 
     def quit_app(self):
-        """Fecha a aplicação principal e todos os recursos das câmeras."""
-        print("Fechando a aplicação central...")
-        self._shutdown_all_cameras() # Garante que todas as câmeras sejam desligadas
+        print("Fechando aplicação...")
+        self._shutdown_all_cameras()
         self.root.destroy()
 
 if __name__ == "__main__":
