@@ -1656,3 +1656,39 @@ Tempo M�dio de Processamento: 48.53 ms
 Uso M�dio da CPU: 37.52 %
 ------------------------------
 
+--- Relatório de Desempenho ---
+Algoritmo: DLIBYOLLOFaceRecognizer
+Resolução: 3280x2464
+FPS Alvo: 30
+Frames Processados: 276
+Tempo Médio de Processamento: 51.39 ms
+Uso Médio da CPU: 39.43 %
+------------------------------
+
+--- Relatório de Desempenho ---
+Algoritmo: DLIBYOLLOFaceRecognizer
+Resolução: 2592x1944
+FPS Alvo: 30
+Frames Processados: 224
+Tempo Médio de Processamento: 59.53 ms
+Uso Médio da CPU: 43.54 %
+------------------------------
+
+--- Relatório de Desempenho ---
+Algoritmo: DLIBYOLLOFaceRecognizer
+Resolução: 2592x1944
+FPS Alvo: 30
+Frames Processados: 129
+Tempo Médio de Processamento: 46.63 ms
+Uso Médio da CPU: 40.33 %
+------------------------------
+
+--- Relatório de Desempenho ---
+Algoritmo: DLIBYOLLOFaceRecognizer
+Resolução: 3280x2464
+FPS Alvo: 30
+Frames Processados: 148
+Tempo Médio de Processamento: 60.41 ms
+Uso Médio da CPU: 39.19 %
+------------------------------
+

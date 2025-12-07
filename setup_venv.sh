@@ -1,9 +1,6 @@
-# chmod +x setup_vigia.sh
-# ./setup_vigia.sh
-
 #!/bin/bash
 
-# setup_vigia.sh
+# setup_venv.sh
 # Script de configuração automática para Raspberry Pi 5 (Bookworm)
 # Projeto: vigIA-face (Picamera2 + Dlib + YOLO + Tkinter)
 
@@ -16,7 +13,7 @@ echo "=========================================================="
 
 # 1. ATUALIZAÇÃO E DEPENDÊNCIAS DO SISTEMA (APT)
 echo ""
-echo "[1/5] Instalando dependências do sistema (root)..."
+echo "[1/4] Instalando dependências do sistema (root)..."
 echo "      Isso inclui bibliotecas gráficas e ferramentas para compilar o Dlib."
 
 sudo apt update
@@ -36,7 +33,7 @@ sudo apt install -y \
 
 # 2. CRIAÇÃO DO AMBIENTE VIRTUAL
 echo ""
-echo "[2/5] Configurando Ambiente Virtual Python..."
+echo "[2/4] Configurando Ambiente Virtual Python..."
 
 # Remove ambiente antigo se existir para garantir uma instalação limpa
 if [ -d ".venv" ]; then
@@ -57,25 +54,20 @@ echo "      Ambiente ativado."
 # Atualiza o pip do ambiente para evitar avisos
 pip install --upgrade pip
 
-# 4. COMPILAÇÃO DO DLIB
+# 4. INSTALAÇÃO DAS DEPENDÊNCIAS VIA REQUIREMENTS
 echo ""
-echo "[3/5] Instalando Dlib (Compilação)..."
-echo "      ATENÇÃO: No Raspberry Pi 5, isso deve levar de 5 a 10 minutos."
+echo "[3/4] Instalando dependências do requirements_rasp.txt..."
+echo "      ATENÇÃO: A compilação do Dlib no Raspberry Pi 5 leva de 5 a 10 minutos."
 echo "      O cooler pode acelerar. Não desligue!"
 
-pip install dlib
+# Verifica se o arquivo requirements existe
+if [ ! -f "requirements_rasp.txt" ]; then
+    echo "ERRO: Arquivo requirements_rasp.txt não encontrado!"
+    exit 1
+fi
 
-# 5. INSTALAÇÃO DAS BIBLIOTECAS FINAIS (COM TRAVAS DE VERSÃO)
-echo ""
-echo "[4/5] Instalando Face Recognition, YOLO e OpenCV..."
-echo "      Aplicando travas de versão para manter compatibilidade com Picamera2."
-
-# face_recognition: Biblioteca de reconhecimento facial
-# ultralytics: YOLO
-# numpy<2: Vital para não quebrar o picamera2 (evita erro de binary incompatibility)
-# opencv-python<4.10: Vital para funcionar com numpy antigo
-pip install face_recognition
-pip install ultralytics "numpy<2" "opencv-python<4.10"
+# Instala todas as dependências do arquivo requirements
+pip install -r requirements_rasp.txt
 
 echo ""
 echo "=========================================================="
@@ -85,4 +77,7 @@ echo ""
 echo "Para rodar seu projeto:"
 echo "  1. source .venv/bin/activate"
 echo "  2. python main.py"
+echo ""
+echo "Pacotes instalados:"
+pip list | grep -E "(numpy|opencv|ultralytics|dlib|face-recognition|psutil|requests|python-dotenv)"
 echo ""
