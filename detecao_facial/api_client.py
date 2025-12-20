@@ -30,7 +30,7 @@ def recognize_embedding(embedding_vector: list):
     
     try:
         # Requisição POST com JSON (muito menor que files/multipart)
-        response = requests.post(url, headers=HEADERS, json=payload, timeout=20) 
+        response = requests.post(url, headers=HEADERS, json=payload, timeout=30) 
          
         if response.status_code == 200:
             return response.json()

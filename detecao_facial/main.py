@@ -51,7 +51,13 @@ class ProcessingThread(threading.Thread):
         self.running = True
         
         # Define o modo de processamento com base na seleção da GUI
-        self.processing_mode = processing_mode # <--- MODIFICADO
+        self.processing_mode = processing_mode 
+        
+        # --- VARIÁVEIS DE CONTROLE PARA DESEMPENHO ---
+        self.api_busy = False           # Impede envio de novas requisições se uma já estiver em curso
+        self.last_api_response = None   # Armazena o último resultado recebido
+        self.last_face_bbox = None      # BBox atualizada localmente
+        
         print(f"ProcessingThread iniciada em modo: {self.processing_mode}")
 
     def draw_info_card(self, frame, api_response, face_bbox):
@@ -189,116 +195,73 @@ class ProcessingThread(threading.Thread):
                 api_response = None  # Resposta da API
                 face_bbox = None     # BBox do rosto principal
 
-                # --- MODO LOCAL (SÓ DETECÇÃO) ---
-                if self.processing_mode == "local":
-                    processed_frame, faces_data = self.face_recognizer.process_frame(frame.copy())
+                # O process_frame detecta o rosto localmente na Rasp em todos os frames
+                processed_frame, faces_data = self.face_recognizer.process_frame(frame.copy())
                 
-                # --- CENÁRIO 1 (API - BORDA) ---
-                elif self.processing_mode == "scenario_1":
-                    # 1. Detecção Local
-                    # Não desenhamos nada ainda, só pegamos os dados
-                    processed_frame_temp, faces_data = self.face_recognizer.process_frame(frame.copy())
+                if faces_data:
+                    face_info = faces_data[0]
+                    x, y, w, h = face_info['bbox']
+                    self.last_face_bbox = (x, y, w, h)
                     
-                    # O 'processed_frame' base será o frame original
-                    processed_frame = frame.copy() 
+                    # 2. DISPARO ASSÍNCRONO DA API (Cenários 1, 2 e 3)
+                    # Só dispara se a API não estiver ocupada processando o frame anterior
+                    if not self.api_busy:
+                        
+                        if self.processing_mode == "scenario_1":
+                            cropped_face = frame[y:y+h, x:x+w]
+                            if cropped_face.size > 0:
+                                _, buffer = cv2.imencode('.jpg', cropped_face)
+                                self._start_async_api(api_client.recognize_cropped_face, buffer.tobytes())
 
-                    if faces_data:
-                        # Pega o primeiro rosto detectado
-                        face_info = faces_data[0] 
-                        x, y, w, h = face_info['bbox']
-                        face_bbox = (x, y, w, h)
-                        
-                        # Recorta o rosto do frame ORIGINAL (sem anotações)
-                        cropped_face = frame[y:y+h, x:x+w]
-                        
-                        if cropped_face.size > 0:
-                            # Codifica o recorte para JPG
-                            ret, buffer = cv2.imencode('.jpg', cropped_face)
-                            if ret:
-                                image_bytes = buffer.tobytes()
-                                
-                                # 2. Reconhecimento na API
-                                api_response = api_client.recognize_cropped_face(image_bytes)
-                        
-                        # 3. Desenha o Card (função lida com 'None' ou resposta válida)
-                        self.draw_info_card(processed_frame, api_response, face_bbox)
-                    
-                    # Se não houver 'faces_data', 'processed_frame' continua sendo o frame original
+                        elif self.processing_mode == "scenario_2":
+                            _, buffer = cv2.imencode('.jpg', frame, [cv2.IMWRITE_JPEG_QUALITY, 70])
+                            self._start_async_api(api_client.recognize_full_frame, buffer.tobytes())
+
+                        elif self.processing_mode == "scenario_3":
+                            cropped_face = frame[y:y+h, x:x+w]
+                            if cropped_face.size > 0:
+                                # Gera o embedding localmente (trabalho da Rasp)
+                                embedding = self.face_recognizer.get_embedding(cropped_face)
+                                if embedding:
+                                    # Envia para o notebook (trabalho do servidor)
+                                    self._start_async_api(api_client.recognize_embedding, embedding)
                 
-                # --- CENÁRIO 2 (API - CENTRAL) ---
-                elif self.processing_mode == "scenario_2":
-                    processed_frame = frame.copy() 
+                else:
+                    # Se nenhum rosto for detectado localmente, limpa os dados para integridade
+                    self.last_api_response = None
+                    self.last_face_bbox = None
 
-                    # 1. Codifica o FRAME INTEIRO (com compressão)
-                    ret, buffer = cv2.imencode('.jpg', frame, [cv2.IMWRITE_JPEG_QUALITY, 70])
-                    if ret:
-                        image_bytes = buffer.tobytes()
+                # 3. DESENHO DO CARD (Usa a resposta mais recente da API)
+                if self.last_face_bbox and self.last_api_response:
+                    self.draw_info_card(processed_frame, self.last_api_response, self.last_face_bbox)
 
-                        # 2. Chama a nova função do api_client
-                        api_response = api_client.recognize_full_frame(image_bytes)
-
-                        # 3. Processa a resposta da API (que agora inclui a 'bbox')
-                        if api_response and api_response.get('nome_completo') and api_response.get('bbox'):
-                            bbox_raw = api_response.get('bbox')
-
-                            # Converte a bbox [x1, y1, x2, y2] para (x, y, w, h)
-                            x = int(bbox_raw[0])
-                            y = int(bbox_raw[1])
-                            w = int(bbox_raw[2] - x)
-                            h = int(bbox_raw[3] - y)
-                            face_bbox = (x, y, w, h)
-
-                            # 4. Desenha o card de informações no frame
-                            self.draw_info_card(processed_frame, api_response, face_bbox)
-
-                # CENÁRIO 3 (API - EMBEDDING)
-                elif self.processing_mode == "scenario_3":
-                    processed_frame = frame.copy()
-
-                    # 1. Detecção Local (DLIB/YOLO)
-                    # Não desenhamos nada ainda, só pegamos os dados.
-                    _, faces_data = self.face_recognizer.process_frame(frame.copy())
-                    
-                    if faces_data:
-                        # Pega o primeiro rosto detectado
-                        face_info = faces_data[0] 
-                        x, y, w, h = face_info['bbox']
-                        face_bbox = (x, y, w, h)
-                        
-                        # Recorta o rosto do frame ORIGINAL
-                        cropped_face = frame[y:y+h, x:x+w]
-                        
-                        if cropped_face.size > 0:
-                            
-                            # 2. GERAÇÃO DO EMBEDDING LOCALMENTE (Novo passo pesado)
-                            embedding_vector = self.face_recognizer.get_embedding(cropped_face)
-                            
-                            if embedding_vector:
-                                # 3. Reconhecimento na API (Envia o vetor via JSON)
-                                api_response = api_client.recognize_embedding(embedding_vector)
-                        
-                        # 4. Desenha o Card
-                        self.draw_info_card(processed_frame, api_response, face_bbox)
-                
                 self.performance_monitor.stop_and_record()
                 
-                # --- Envio para GUI ---
-                if processed_frame is None:
-                    processed_frame = frame # Garante que a GUI sempre receba um frame
-                    
+                # Gerenciamento da fila para a GUI
                 if self.result_queue.full():
                     try: self.result_queue.get_nowait()
                     except Empty: pass
-                
-                try:
-                    self.result_queue.put(processed_frame, block=False)
-                except:
-                    pass
+                self.result_queue.put(processed_frame, block=False)
                     
             except Empty:
                 continue
+
+    def _start_async_api(self, api_func, data):
+        """Executa a chamada HTTP em uma thread separada para não congelar o vídeo"""
+        def worker():
+            self.api_busy = True
+            try:
+                # O timeout do api_client ocorre aqui sem travar a ProcessingThread
+                response = api_func(data)
+                # Só atualiza se houver um nome (evita limpar card por erro de rede temporário)
+                if response and response.get('nome_completo'):
+                    self.last_api_response = response
             except Exception as e:
-                print(f"Erro no processamento: {e}")
+                print(f"Erro assíncrono: {e}")
+            finally:
+                self.api_busy = False # Libera para a próxima tentativa
+        
+        threading.Thread(target=worker, daemon=True).start()
     
     def stop(self):
         self.running = False
