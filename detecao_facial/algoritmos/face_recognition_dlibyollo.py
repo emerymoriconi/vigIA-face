@@ -2,10 +2,12 @@ import cv2
 import dlib
 from ultralytics import YOLO
 import numpy as np
+from keras_facenet import FaceNet
+from PIL import Image
 
 class DLIBYOLLOFaceRecognizer:
    
-    def __init__(self):
+    def __init__(self, yolo_instance=None):
         """
         Inicializa o pipeline hierárquico com identificação por landmarks.
         - Estágio 1: Detector de faces HOG do Dlib (para localização inicial).
@@ -15,14 +17,52 @@ class DLIBYOLLOFaceRecognizer:
       
         self.dlib_detector = dlib.get_frontal_face_detector()
 
-        
         predictor_path = "arquivos_algoritmos/dlibyollo/shape_predictor_68_face_landmarks.dat"
         self.shape_predictor = dlib.shape_predictor(predictor_path)
-
        
-        model_path = 'arquivos_algoritmos/yolo/yolov8n-face.pt'
-        self.yolo_model = YOLO(model_path)
+        if yolo_instance is not None:
+            self.yolo_model = yolo_instance
+            print("YOLO: Usando instância compartilhada.")
+        else:
+            model_path = 'arquivos_algoritmos/yolo/yolov8n-face.pt'
+            self.yolo_model = YOLO(model_path)
+            print("YOLO: Carregando nova instância do modelo.")
+                
+        self.facenet_model = FaceNet() 
+        print("FaceNet: Instância do Keras-FaceNet carregada (Idêntica ao servidor).")
+        
         self.confidence_threshold = 0.5
+
+    # função para obter o embedding do rosto
+    def get_embedding(self, cropped_face):
+        """
+        Gera o vetor de 512 dimensões replicando exatamente a técnica do notebook.
+        """
+        # 1. Converter BGR (OpenCV) para RGB (Pillow)
+        face_rgb = cv2.cvtColor(cropped_face, cv2.COLOR_BGR2RGB)
+        image = Image.fromarray(face_rgb)
+
+        # 2. Técnica do Servidor: make_square (Linhas 40-58 do recon.py)
+        # Evita que o rosto seja esticado ao redimensionar
+        width, height = image.size
+        max_side = max(width, height)
+        square_img = Image.new("RGB", (max_side, max_side), (0, 0, 0))
+        left = (max_side - width) // 2
+        top = (max_side - height) // 2
+        square_img.paste(image, (left, top))
+
+        # 3. Redimensionar para 160x160 (Requisito do modelo Facenet)
+        image_160 = square_img.resize((160, 160))
+        
+        # 4. Converter para array float32 e expandir para (1, 160, 160, 3)
+        face_array = np.asarray(image_160, dtype="float32")
+        samples = np.expand_dims(face_array, axis=0)
+        
+        # 5. Gerar Embedding (O método .embeddings() do Keras-FaceNet já aplica
+        # prewhiten e normalização L2 interna, igual ao servidor)
+        embeddings = self.facenet_model.embeddings(samples)
+        
+        return embeddings[0].tolist()
 
     def process_frame(self, frame):
         """
