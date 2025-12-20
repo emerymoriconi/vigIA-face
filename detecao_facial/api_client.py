@@ -5,7 +5,8 @@ import json
 
 # --- CONFIGURAÇÃO ---
 
-API_BASE_URL = "http://10.13.50.207:8000/api/v1" 
+API_BASE_URL = "http://192.168.18.242:8000/api/v1" 
+#API_BASE_URL = "http://192.168.0.193:8000/api/v1" 
 # Mude para o token da sua API (do .env.example)
 BEARER_TOKEN = "aBc1D2eF3gH4iJ5kL6mN7pQ8rS9tU0vW"
 # --------------------
@@ -13,6 +14,33 @@ BEARER_TOKEN = "aBc1D2eF3gH4iJ5kL6mN7pQ8rS9tU0vW"
 HEADERS = {
     "Authorization": f"Bearer {BEARER_TOKEN}"
 }
+
+def recognize_embedding(embedding_vector: list):
+    """
+    CENÁRIO 3: Envia o vetor de embedding JÁ CALCULADO para o endpoint de comparação.
+    """
+    
+    # Endpoint otimizado: O servidor só precisa fazer o matching no banco de dados.
+    url = f"{API_BASE_URL}/recognize/recognize_vector/" 
+    
+    # O payload será o vetor em formato JSON
+    payload = {
+        'embedding': embedding_vector
+    }
+    
+    try:
+        # Requisição POST com JSON (muito menor que files/multipart)
+        response = requests.post(url, headers=HEADERS, json=payload, timeout=20) 
+         
+        if response.status_code == 200:
+            return response.json()
+        elif response.status_code == 404:
+            print("API Client: Vetor não reconhecido pela API.")
+            return None
+            
+    except requests.exceptions.RequestException as e:
+        print(f"API Client: Erro de conexão - {e}")
+        return None
 
 def recognize_cropped_face(image_bytes: bytes):
     """
@@ -33,7 +61,7 @@ def recognize_cropped_face(image_bytes: bytes):
     }
     
     try:
-        response = requests.post(url, headers=HEADERS, files=files, timeout=5) # Timeout de 5s
+        response = requests.post(url, headers=HEADERS, files=files, timeout=30) # Timeout de 30s
         
         if response.status_code == 200:
             return response.json()

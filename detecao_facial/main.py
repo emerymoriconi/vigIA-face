@@ -9,6 +9,7 @@ import threading
 import cv2
 from PIL import Image, ImageTk
 from queue import Queue, Empty
+from ultralytics import YOLO
 import api_client
 
 class CaptureThread(threading.Thread):
@@ -250,6 +251,35 @@ class ProcessingThread(threading.Thread):
                             # 4. Desenha o card de informações no frame
                             self.draw_info_card(processed_frame, api_response, face_bbox)
 
+                # CENÁRIO 3 (API - EMBEDDING)
+                elif self.processing_mode == "scenario_3":
+                    processed_frame = frame.copy()
+
+                    # 1. Detecção Local (DLIB/YOLO)
+                    # Não desenhamos nada ainda, só pegamos os dados.
+                    _, faces_data = self.face_recognizer.process_frame(frame.copy())
+                    
+                    if faces_data:
+                        # Pega o primeiro rosto detectado
+                        face_info = faces_data[0] 
+                        x, y, w, h = face_info['bbox']
+                        face_bbox = (x, y, w, h)
+                        
+                        # Recorta o rosto do frame ORIGINAL
+                        cropped_face = frame[y:y+h, x:x+w]
+                        
+                        if cropped_face.size > 0:
+                            
+                            # 2. GERAÇÃO DO EMBEDDING LOCALMENTE (Novo passo pesado)
+                            embedding_vector = self.face_recognizer.get_embedding(cropped_face)
+                            
+                            if embedding_vector:
+                                # 3. Reconhecimento na API (Envia o vetor via JSON)
+                                api_response = api_client.recognize_embedding(embedding_vector)
+                        
+                        # 4. Desenha o Card
+                        self.draw_info_card(processed_frame, api_response, face_bbox)
+                
                 self.performance_monitor.stop_and_record()
                 
                 # --- Envio para GUI ---
@@ -412,6 +442,9 @@ class MainApp:
     def __init__(self, root):
         self.root = root
         self.root.title("Controle Central de Câmeras")
+        
+        print("Carregando modelo YOLO compartilhado...")
+        self.shared_yolo = YOLO('arquivos_algoritmos/yolo/yolov8n-face.pt')
 
         # Detecta câmeras
         self.available_cameras = Camera.detect_available_cameras()
@@ -434,7 +467,7 @@ class MainApp:
         cam_idx = camera_info['index']
         
         # Cria recognizer para esta câmera
-        self.face_recognizers[cam_idx] = DLIBYOLLOFaceRecognizer()
+        self.face_recognizers[cam_idx] = DLIBYOLLOFaceRecognizer(yolo_instance=self.shared_yolo)
         
         top_level = tk.Toplevel(self.root)
         controller = CameraFeedController(

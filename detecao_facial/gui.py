@@ -40,11 +40,12 @@ class GUI:
             "Local (Apenas Detecção)": "local",
             "Cenário 1 (Detec. Local)": "scenario_1",
             "Cenário 2 (Sem Detec. Local)": "scenario_2",
+            "Cenário 3 (Detec. Local/Vetor)": "scenario_3",
             # "Cenário 2 (API - Central)": "scenario_2" # Descomente quando estiver pronto
         }
         
-        # Define o padrão para o Cenário 1
-        self.selected_processing_mode.set("Cenário 1 (API - Borda)") 
+        # Define o padrão para o Cenário 3
+        self.selected_processing_mode.set("Cenário 3 (Detec. Local/Vetor)") 
         
         self.processing_option_menu = tk.OptionMenu(
             processing_frame,
