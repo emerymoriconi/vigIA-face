@@ -1,0 +1,17 @@
+services:
+  qdrant:
+    image: qdrant/qdrant:latest
+    container_name: qdrant-rasp
+    restart: always
+    ports:
+      - "6333:6333"
+      - "6334:6334"
+    volumes:
+      - ./database/qdrant_storage:/qdrant/storage
+      - ./database/qdrant_snapshots:/qdrant/snapshots
+    environment:
+      # Otimização para Raspberry Pi 5
+      - QDRANT__STORAGE__PERFORMANCE__MAX_SEARCH_THREADS=2
+      - QDRANT__STORAGE__PERFORMANCE__OPTIMIZATION_INTERVAL_SEC=60
+      - QDRANT__STORAGE__PERFORMANCE__INCOMING_OPTIMIZATION_THRESHOLD_KB=1000
+      - QDRANT__SERVICE__ENABLE_DASHBOARD=true
