@@ -1,3 +1,15 @@
-numpy==2.3.0
-opencv-python==4.11.0.86
-pillow==11.2.1
+# Versões travadas para compatibilidade Raspberry Pi 5 (CSI Camera)
+numpy>=1.26.0,<2.0.0
+opencv-python<4.10.0
+onnx
+onnxruntime
+scikit-image
+qdrant-client>=1.7.0
+fastapi
+uvicorn[standard]
+websockets
+python-multipart
+requests
+python-dotenv
+psutil
+cryptography

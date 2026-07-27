@@ -1,0 +1,59 @@
+# === Vigia-Face Project Specific ===
+
+.env
+*.log
+logs/*
+!logs/.gitkeep
+docs-t
+
+# AI Models & Weights
+weights/*.onnx
+!weights/.gitkeep
+
+# Databases & Storage
+database/qdrant_storage/
+database/qdrant_snapshots/
+database/face_database/
+database/history/*
+!database/history/.gitkeep
+!database/history/images/
+database/history/images/*
+!database/history/images/.gitkeep
+database/sync_state.json
+database/*.sqlite
+database/*.db
+database/*.sqlite-journal
+assets/faces/*
+!assets/faces/.gitkeep
+
+# === Python (Backend) ===
+__pycache__/
+*.py[cod]
+*.class
+.venv/
+venv/
+.pytest_cache/
+.coverage
+htmlcov/
+.mypy_cache/
+
+# === React/Vite (Frontend) ===
+app/node_modules/
+app/dist/
+app/dist-ssr/
+app/*.local
+app/.env.*
+!app/.env.example
+
+# === OS & IDEs ===
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# === System / Misc ===
+output_video.mp4
+*.bak
+*.tmp
