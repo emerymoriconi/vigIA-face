@@ -10,7 +10,7 @@ import os
 from models import SCRFD, ArcFace
 from src.database.face_db import FaceDatabase
 from src.database.sqlite_db import save_to_history
-from src.config import QDRANT_HOST, QDRANT_PORT, QDRANT_PATH, cipher_suite, HISTORY_COOLDOWN, AI_THRESHOLD, DETECTOR_MODEL, RECOGNIZER_MODEL
+from src.config import QDRANT_HOST, QDRANT_PORT, QDRANT_PATH, cipher_suite, HISTORY_COOLDOWN, AI_THRESHOLD, DETECTOR_MODEL, RECOGNIZER_MODEL, CAMERA_SOURCE, CAMERA_TYPE
 from src.core import state
 from src.utils.ws_utils import broadcast_ws_sync
 from src.utils.normalization import normalize_name, normalize_cpf, normalize_birth_date
@@ -214,7 +214,12 @@ def init_engines():
         port=QDRANT_PORT,
         path=QDRANT_PATH
     )
-    state.camera = ThreadedCamera(None)
+    camera_use_opencv = True
+    if CAMERA_TYPE:
+        camera_use_opencv = CAMERA_TYPE.strip().upper() != "CSI"
+    state.camera = ThreadedCamera(source=CAMERA_SOURCE, use_opencv=camera_use_opencv)
+    if CAMERA_SOURCE is not None:
+        logger.info(f"Câmera forçada via .env: source={CAMERA_SOURCE}, tipo={'CSI' if not camera_use_opencv else 'USB'}")
     
     # Carrega banco com retry estendido
     max_retries = 30

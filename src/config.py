@@ -14,6 +14,11 @@ ENABLE_DOCS = os.getenv("VIGIA_ENABLE_DOCS", "false").lower() == "true"
 HISTORY_COOLDOWN = int(os.getenv("HISTORY_COOLDOWN", "60"))
 AI_THRESHOLD = float(os.getenv("AI_THRESHOLD", "0.45"))
 
+# Câmera (override manual — use quando a autodetecção falhar nesta Pi específica)
+_camera_source_raw = os.getenv("CAMERA_SOURCE")
+CAMERA_SOURCE = int(_camera_source_raw) if _camera_source_raw not in (None, "") else None
+CAMERA_TYPE = os.getenv("CAMERA_TYPE")  # "CSI" ou "USB" — só tem efeito junto com CAMERA_SOURCE
+
 # Modelos
 DETECTOR_MODEL = os.getenv("DETECTOR_MODEL", "./weights/det_10g.onnx")
 RECOGNIZER_MODEL = os.getenv("RECOGNIZER_MODEL", "./weights/w600k_mbf.onnx")

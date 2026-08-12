@@ -23,7 +23,7 @@ fi
 # 1. Dependências do Sistema (Drivers de Câmera e Node.js)
 echo -e "${BLUE}Verificando dependências de sistema...${NC}"
 sudo apt update
-sudo apt install -y python3-picamera2 libcamera-apps-lite
+sudo apt install -y python3-picamera2 libcamera-apps-lite v4l-utils
 
 # Melhorar instalação do Node.js (NodeSource para garantir v20+)
 if ! command -v node &> /dev/null || [ $(node -v | cut -d'v' -f2 | cut -d'.' -f1) -lt 18 ]; then

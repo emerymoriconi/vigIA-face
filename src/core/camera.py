@@ -2,26 +2,28 @@ import threading
 import time
 import cv2
 import subprocess
+import shutil
 import os
 import logging
+
+logger = logging.getLogger("AUDITORIA")
 
 try:
     from picamera2 import Picamera2
 except ImportError:
     Picamera2 = None
-
-logger = logging.getLogger("AUDITORIA")
+    logger.warning("Picamera2 indisponível (import falhou) — detecção de câmera CSI desabilitada nesta máquina.")
 
 class ThreadedCamera:
     """Captura de vídeo (OpenCV/Picamera2)."""
     
-    def __init__(self, source=0):
+    def __init__(self, source=0, use_opencv: bool = True):
         self.source = source
         self.vid = None
         self.ret, self.frame = False, None
         self.started = False
         self.read_lock = threading.Lock()
-        self.use_opencv = True 
+        self.use_opencv = use_opencv
 
     @staticmethod
     def detect_available_cameras():
@@ -34,29 +36,39 @@ class ThreadedCamera:
                     model = cam_info.get('Model', f'CSI Camera {i}')
                     cameras.append({'index': i, 'name': model, 'type': 'CSI', 'use_opencv': False})
             except Exception as e:
-                logger.debug(f"Erro ao listar câmeras CSI: {e}")
+                logger.warning(f"Erro ao listar câmeras CSI: {e}")
+
+        has_v4l2ctl = shutil.which("v4l2-ctl") is not None
+        if not has_v4l2ctl:
+            logger.warning(
+                "v4l2-ctl não encontrado no sistema — usando fallback direto via OpenCV para "
+                "detectar câmeras USB (instale o pacote 'v4l-utils' para uma detecção mais precisa)."
+            )
 
         for i in range(16):
             dev_path = f"/dev/video{i}"
             if not os.path.exists(dev_path):
                 continue
             try:
-                cmd = f"v4l2-ctl --device={dev_path} --all"
-                result = subprocess.run(cmd, shell=True, capture_output=True, text=True)
-                if "Video Capture" in result.stdout and "Metadata" not in result.stdout:
-                    cap = cv2.VideoCapture(i, cv2.CAP_V4L2)
-                    if cap.isOpened():
-                        ret = cap.grab()
-                        cap.release()
-                        if ret:
-                            cameras.append({
-                                'index': i, 
-                                'name': f'USB/V4L2 Camera {i}', 
-                                'type': 'USB', 
-                                'use_opencv': True
-                            })
-            except Exception:
-                pass
+                if has_v4l2ctl:
+                    cmd = f"v4l2-ctl --device={dev_path} --all"
+                    result = subprocess.run(cmd, shell=True, capture_output=True, text=True)
+                    if "Video Capture" not in result.stdout or "Metadata" in result.stdout:
+                        continue
+
+                cap = cv2.VideoCapture(i, cv2.CAP_V4L2)
+                if cap.isOpened():
+                    ret = cap.grab()
+                    cap.release()
+                    if ret:
+                        cameras.append({
+                            'index': i,
+                            'name': f'USB/V4L2 Camera {i}',
+                            'type': 'USB',
+                            'use_opencv': True
+                        })
+            except Exception as e:
+                logger.warning(f"Erro ao verificar dispositivo {dev_path}: {e}")
         return cameras
 
     def start(self):
